@@ -1,7 +1,7 @@
+"""Compute Integral Image in Viola Jones Face Detection Algorithm."""
+
 import numpy as np
 import collections
-
-from .._shared.utils import warn
 
 
 def integral_image(image):
@@ -72,9 +72,9 @@ def integrate(ii, start, end):
     start_negatives = start < 0
     end_negatives = end < 0
     start = (start + total_shape) * start_negatives + \
-             start * ~(start_negatives)
+        start * ~(start_negatives)
     end = (end + total_shape) * end_negatives + \
-           end * ~(end_negatives)
+        end * ~(end_negatives)
 
     if np.any((end - start) < 0):
         raise IndexError('end coordinates must be greater or equal to start')
@@ -115,7 +115,7 @@ def integrate(ii, start, end):
                for r in range(rows)]  # find out bad start rows
 
         corner_points = (end * (np.invert(bool_mask))) + \
-                         ((start - 1) * bool_mask)  # find corner for each row
+            ((start - 1) * bool_mask)  # find corner for each row
 
         S += [sign * ii[tuple(corner_points[r])] if(not bad[r]) else 0
               for r in range(rows)]  # add only good rows
