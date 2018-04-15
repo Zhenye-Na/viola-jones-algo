@@ -10,26 +10,29 @@ def read_dataset(image_data_path, image_output_path, process_method='default'):
     """Preprocesse images.
 
     Args:
-        data(dict): Python dict loaded using io_tools.
         process_method(str): processing methods needs to support
           ['default', 'rgb', 'hsv'].
         if process_method is 'default':
           1. Convert images to range [0,1].
           2. Convert from rgba to gray-scale then back to rgb. Using skimage.
           (if possible)
+
         if process_method is 'rgb'
           1. Convert the images to range of [0, 1].
           2. Convert from rgba to rgb. Using skimage. (if possible)
+
         if process_method is 'hsv':
           1. Convert images to range [0,1].
           2. Convert from rgba to hsv. Using skimage. (if possible)
+
     Returns:
         Nothing to return.
         Preprocessed image will be automatically saved in file
     """
-    # First, we will resize all the images for pokemon to the same size,
-    # in order to feed into DCGAN.
+    # First, we will resize all the images to the same size,
+    # which is 24 x 24, the best result given by Viola Jones
     # imgdir = "../data/image_data" = image_data_path
+    # output image dir
     dstdir = "./data/resized_data"
 
     # If dest directory not exists, create dir
@@ -39,14 +42,13 @@ def read_dataset(image_data_path, image_output_path, process_method='default'):
     # Resize all the images to (256, 256)
     for imname in os.listdir(image_data_path):
         img = io.imread(os.path.join(image_data_path, imname))
-        img = resize(img, (256, 256), mode='reflect')
+        img = resize(img, (24, 24), mode='reflect')
         io.imsave(os.path.join(dstdir, imname), img)
 
     # Second, we preprocess all of the image based on
     # selected methods, it may give different accuracy.
     # Change input dir for all of the images.
     inpdir = dstdir
-    # outdir = "../data/preprocessed_data" = image_output_path
 
     # If output directory not exists, create dir
     if not os.path.isdir(image_output_path):
