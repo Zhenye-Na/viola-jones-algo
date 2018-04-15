@@ -9,7 +9,7 @@ from skimage import color
 from skimage.transform import resize
 
 
-def rescale_data(image, filename):
+def rescale_data(image, filename, feature_type):
     """Resize all the images to the same size.
 
     Args:
@@ -19,19 +19,32 @@ def rescale_data(image, filename):
         Nothing to return.
         Rescaled image will be automatically saved in file
 
-    1. Resize all the images to the same size,
-    2. Save to new directory
+    1. Reduced mean (proces images)
+    2. Resize all the images to the same size,
+    3. Save to new directory
     """
+    # data = process_data(image, feature_type)
+
     dstdir = "../data/image_data/rescaled_data/"
 
     # If dest directory not exists, create dir
     if not os.path.isdir(dstdir):
         os.mkdir(dstdir)
 
-    idx = 0
+    data = {}
+    data['image'] = []
+
     for img in image['image']:
         # Resize all the images to same size
-        rescaled_img = resize(img, (48, 48), mode='reflect')
+        rescaled_img = resize(img, (64, 64), mode='reflect')
+        data['image'].append(rescaled_img)
+
+    new_image = process_data(data, feature_type)
+
+    idx = 0
+    for img in new_image['image']:
+        # Resize all the images to same size
+        rescaled_img = resize(img, (64, 64), mode='reflect')
         io.imsave(os.path.join(dstdir, filename[0]), rescaled_img)
         idx += 1
 
@@ -58,23 +71,7 @@ def preprocess_data(img_data_dir, img_output_dir, preprocess_method='default'):
         Nothing to return.
         Preprocessed image will be automatically saved in file
     """
-    # output image dir
-    dstdir = "./data/resized_data"
-
-    # If dest directory not exists, create dir
-    if not os.path.isdir(dstdir):
-        os.mkdir(dstdir)
-
-    # Resize all the images to (24, 24)
-    for imname in os.listdir(img_data_dir):
-        img = io.imread(os.path.join(img_data_dir, (imname + 'jpg')))
-        img = resize(img, (24, 24), mode='reflect')
-        io.imsave(os.path.join(dstdir, imname), img)
-
-    # Second, we preprocess all of the image based on
-    # selected methods, it may give different accuracy.
-    # Change input dir for all of the images.
-    inpdir = dstdir
+    inpdir = img_data_dir
 
     # If output directory not exists, create dir
     if not os.path.isdir(img_output_dir):
@@ -157,7 +154,7 @@ def preprocess_data(img_data_dir, img_output_dir, preprocess_method='default'):
 
 
 def process_data(data, process_method='default'):
-    """Processes dataset.
+    """Processe dataset.
 
     Args:
         data(dict): Python dict loaded using io_tools.
@@ -167,15 +164,15 @@ def process_data(data, process_method='default'):
     if process_method is 'raw'
       1. Convert the images to range of [0, 1] by dividing by 255.
       2. Remove dataset mean. Average the images across the batch dimension.
-      3. Flatten images, data['image'] is converted to dimension (N, 8*8*3)
+      3. Flatten images, data['image'] is converted to dimension (N, 64*64*3)
 
     if process_method is 'default':
       1. Convert images to range [0,1]
       2. Convert from rgb to gray then back to rgb. Use skimage
       3. Take the absolute value of the difference with the original image.
       4. Remove dataset mean. Average the absolute value differences across
-         the batch dimension. This will result in a mean of dimension (8,8,3).
-      5. Flatten images, data['image'] is converted to dimension (N, 8*8*3)
+         the batch dimension. This will result in a mean of dimension (64,64*3).
+      5. Flatten images, data['image'] is converted to dimension (N, 64*64*3)
 
     Returns:
         data(dict): Apply the described processing based on the process_method
@@ -192,7 +189,7 @@ def process_data(data, process_method='default'):
             image -= image_mean
 
         # Flatten images
-        data['image'] = scaled_image.flatten().reshape(N, 8 * 8 * 3)
+        data['image'] = scaled_image.flatten().reshape(N, 64 * 64 * 3)
 
     elif process_method == 'default':
         # Convert images to range [0,1]
@@ -213,6 +210,6 @@ def process_data(data, process_method='default'):
             image -= image_mean
 
         # Flatten images
-        data['image'] = absval.flatten().reshape(N, 8 * 8 * 3)
+        data['image'] = absval.flatten().reshape(N, 64 * 64 * 3)
 
     return data
