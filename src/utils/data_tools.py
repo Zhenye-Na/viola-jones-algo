@@ -1,9 +1,12 @@
 """Image normalization for Viola Jones Face Detection."""
 
 import os
-from skimage import io
-from skimage.transform import resize
+import skimage
+import numpy as np
 from PIL import Image
+from skimage import io
+from skimage import color
+from skimage.transform import resize
 
 
 def rescale_data(image, filename):
@@ -13,13 +16,13 @@ def rescale_data(image, filename):
         image (dict): training/validation/test image dataset.
 
     Returns:
-        None. Save rescaled image in a new folder.
+        Nothing to return.
+        Rescaled image will be automatically saved in file
 
+    1. Resize all the images to the same size,
+    2. Save to new directory
     """
-    # 1. Resize all the images to the same size,
-    # 2. Save to new directory
-
-    dstdir = "../data/rescaled_data"
+    dstdir = "../data/image_data/rescaled_data/"
 
     # If dest directory not exists, create dir
     if not os.path.isdir(dstdir):
@@ -27,39 +30,34 @@ def rescale_data(image, filename):
 
     idx = 0
     for img in image['image']:
-        # Resize all the images to (24, 24)
-        rescaled_img = resize(img, (24, 24), mode='reflect')
+        # Resize all the images to same size
+        rescaled_img = resize(img, (48, 48), mode='reflect')
         io.imsave(os.path.join(dstdir, filename[0]), rescaled_img)
         idx += 1
 
 
-def preprocess_data(img_data_dir, img_output_dir, process_method='default'):
+def preprocess_data(img_data_dir, img_output_dir, preprocess_method='default'):
     """Preprocesse images.
 
     Args:
         process_method(str): processing methods needs to support
-          ['default', 'rgb', 'hsv'].
+          ['default', 'lab', 'hsv'].
         if process_method is 'default':
           1. Convert images to range [0,1].
-          2. Convert from rgba to gray-scale then back to rgb. Using skimage.
-          (if possible)
+          2. Convert from rgba to gray-scale.
 
-        if process_method is 'rgb'
+        if process_method is 'lab'
           1. Convert the images to range of [0, 1].
-          2. Convert from rgba to rgb. Using skimage. (if possible)
+          2. Convert from rgba to rgb to lab to gray-scale.
 
         if process_method is 'hsv':
           1. Convert images to range [0,1].
-          2. Convert from rgba to hsv. Using skimage. (if possible)
+          2. Convert from rgba to hsv to gray-scale.
 
     Returns:
         Nothing to return.
         Preprocessed image will be automatically saved in file
     """
-    # First, we will resize all the images to the same size,
-    # which is 24 x 24, the best result given by Viola Jones
-
-    # imgdir = "../data/image_data" = img_data_dir
     # output image dir
     dstdir = "./data/resized_data"
 
@@ -82,7 +80,7 @@ def preprocess_data(img_data_dir, img_output_dir, process_method='default'):
     if not os.path.isdir(img_output_dir):
         os.mkdir(img_output_dir)
 
-    if process_method == 'default':
+    if preprocess_method == 'default':
         # If the image channel is RGBA, then convert to
         # gray-scale and back to RGB
 
@@ -107,11 +105,11 @@ def preprocess_data(img_data_dir, img_output_dir, process_method='default'):
                 gray2rgb.save(os.path.join(
                     img_output_dir, imname.split('.')[0] + '.jpg'), 'JPEG')
             else:
-                img.convert(mode='RGB')
+                img.convert(mode='LA')
                 img.save(os.path.join(
                     img_output_dir, imname.split('.')[0] + '.jpg'), 'JPEG')
 
-    elif process_method == 'rgb':
+    elif preprocess_method == 'lab':
         # If the image channel is RGBA, then convert to RGB
 
         for imname in os.listdir(inpdir):
@@ -126,11 +124,12 @@ def preprocess_data(img_data_dir, img_output_dir, process_method='default'):
                 rgba2rgb.save(os.path.join(
                     img_output_dir, imname.split('.')[0] + '.jpg'), 'JPEG')
             else:
-                img.convert(mode='RGB')
+                img.convert(mode='LAB')
+                img.convert(mode='LA')
                 img.save(os.path.join(
                     img_output_dir, imname.split('.')[0] + '.jpg'), 'JPEG')
 
-    elif process_method == 'hsv':
+    elif preprocess_method == 'hsv':
         # If the image channel is RGBA, then convert to hsv
 
         for imname in os.listdir(inpdir):
@@ -148,10 +147,72 @@ def preprocess_data(img_data_dir, img_output_dir, process_method='default'):
                     img_output_dir, imname.split('.')[0] + '.jpg'), 'JPEG')
             else:
                 img.convert(mode='HSV')
-                img.convert(mode='RGB')
+                img.convert(mode='LA')
                 img.save(os.path.join(
                     img_output_dir, imname.split('.')[0] + '.jpg'), 'JPEG')
 
     else:
-        print("Method: " + process_method +
+        print("Method: " + preprocess_method +
               "is supported here. You wanna give it a try on your own? :)")
+
+
+def process_data(data, process_method='default'):
+    """Processes dataset.
+
+    Args:
+        data(dict): Python dict loaded using io_tools.
+        process_method(str): processing methods needs to support
+          ['raw', 'default'].
+
+    if process_method is 'raw'
+      1. Convert the images to range of [0, 1] by dividing by 255.
+      2. Remove dataset mean. Average the images across the batch dimension.
+      3. Flatten images, data['image'] is converted to dimension (N, 8*8*3)
+
+    if process_method is 'default':
+      1. Convert images to range [0,1]
+      2. Convert from rgb to gray then back to rgb. Use skimage
+      3. Take the absolute value of the difference with the original image.
+      4. Remove dataset mean. Average the absolute value differences across
+         the batch dimension. This will result in a mean of dimension (8,8,3).
+      5. Flatten images, data['image'] is converted to dimension (N, 8*8*3)
+
+    Returns:
+        data(dict): Apply the described processing based on the process_method
+        str to data['image'], then return data.
+    """
+    if process_method == 'raw':
+        # Convert images to range [0,1]
+        scaled_image = data['image'] / 255
+        N = len(scaled_image)
+
+        # Remove dataset mean
+        image_mean = np.sum(scaled_image, axis=0) / N
+        for image in scaled_image:
+            image -= image_mean
+
+        # Flatten images
+        data['image'] = scaled_image.flatten().reshape(N, 8 * 8 * 3)
+
+    elif process_method == 'default':
+        # Convert images to range [0,1]
+        scaled_image = data['image'] / 255
+        N = len(scaled_image)
+
+        # Convert from rgb to gray then back to rgb
+        grayscale = color.rgb2gray(scaled_image)
+        recRgb = color.gray2rgb(grayscale)
+
+        # Take the absolute value of the difference with the original image
+        absval = abs(recRgb - scaled_image)
+
+        # Remove dataset mean
+        image_mean = np.sum(absval, axis=0) / N
+
+        for image in absval:
+            image -= image_mean
+
+        # Flatten images
+        data['image'] = absval.flatten().reshape(N, 8 * 8 * 3)
+
+    return data
