@@ -8,9 +8,6 @@ import os
 from skimage import io
 
 
-# train_set = read_dataset("data/train.txt", "data/image_data/")
-# train_set = preprocess_data(train_set, feature_type)
-
 def read_dataset(data_txt_file, image_data_path):
     """Read data into a Python dictionary.
 
@@ -32,6 +29,7 @@ def read_dataset(data_txt_file, image_data_path):
     data = {}
     data['image'] = []
     data['label'] = []
+    imgname = []
 
     # Read txt file
     with open(data_txt_file, 'r') as f:
@@ -44,6 +42,7 @@ def read_dataset(data_txt_file, image_data_path):
 
             # Append '.jpg' to filename
             imname = dirs[0] + '.jpg'
+            imgname.append(dirs[0])
             imgdir = os.path.join(image_data_path, imname)
             data['image'].append(io.imread(imgdir))
 
@@ -51,4 +50,4 @@ def read_dataset(data_txt_file, image_data_path):
     data['label'] = np.array(data['label'])
     data['image'] = np.array(data['image'])
 
-    return data
+    return data, imgname
