@@ -39,7 +39,7 @@ def read_dataset(image_data_path, image_output_path, process_method='default'):
     if not os.path.isdir(dstdir):
         os.mkdir(dstdir)
 
-    # Resize all the images to (256, 256)
+    # Resize all the images to (24, 24)
     for imname in os.listdir(image_data_path):
         img = io.imread(os.path.join(image_data_path, imname))
         img = resize(img, (24, 24), mode='reflect')
