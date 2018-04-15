@@ -22,11 +22,11 @@ flags.DEFINE_string(
     'default',
     'Feature type, supports [default, lab, hsv]')
 
-# Define process method
+# Define process method (reduced mean)
 flags.DEFINE_string(
     'feature_type',
     'default',
-    'Feature type, supports [raw, default, custom]')
+    'Feature type, supports [default, raw]')
 
 # Training/Validation/Testing txt dir
 flags.DEFINE_string('traintxtdir', '../data/train.txt',
@@ -42,13 +42,12 @@ flags.DEFINE_string('totaltxtdir', '../data/total.txt',
 flags.DEFINE_string('imgdir', '../data/image_data/', 'image data directory')
 flags.DEFINE_string('preprocesed_imgdir', '../data/preprocessed_data/',
                     'preprocessed image data directory')
-flags.DEFINE_string('rescaled_imgdir', '../data/image_data/rescaled_data/',
+flags.DEFINE_string('rescaled_imgdir', '../data/rescaled_data/',
                     'rescaled image data directory')
 
 
 def main(_):
     """High level pipeline."""
-
     # pp.pprint(flags.FLAGS.__flags)
 
     # Preprocess method supports ['default', 'rgb', 'hsv']
@@ -66,9 +65,13 @@ def main(_):
     preprocesed_imgdir = FLAGS.preprocesed_imgdir
     rescaled_imgdir = FLAGS.rescaled_imgdir
 
-    # Preprocess all the image
-    dataset, filename = read_dataset(totaltxtdir, imgdir)
-    rescale_data(dataset, filename)
+    # Read all the images
+    raw_dataset, filename = read_dataset(totaltxtdir, imgdir)
+
+    # Resize all the images -> save to new folder, all image in same size
+    rescale_data(raw_dataset, filename, feature_type)
+
+    # Preprocess images
     preprocess_data(rescaled_imgdir, preprocesed_imgdir, preprocess_method)
 
     # Load train/val/test set
