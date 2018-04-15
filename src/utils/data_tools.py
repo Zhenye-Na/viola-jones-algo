@@ -31,6 +31,7 @@ def preprocess_data(img_data_dir, img_output_dir, process_method='default'):
     """
     # First, we will resize all the images to the same size,
     # which is 24 x 24, the best result given by Viola Jones
+
     # imgdir = "../data/image_data" = img_data_dir
     # output image dir
     dstdir = "./data/resized_data"
