@@ -1,11 +1,20 @@
 """Compute Integral Image in Viola Jones Face Detection Algorithm."""
 
 import numpy as np
-import collections
 
 
 def integral_image(image):
     """Integral image / summed area table.
+
+    ----------
+    Perform the same algorithm as skimage.transform.integral.integral_image(x)
+
+    Parameters :
+        x : ndarray. Input image.
+    Returns :
+        S : ndarray. Integral image / summed area table.
+
+    ----------
 
     The integral image contains the sum of all elements above and to the
     left of it, i.e.:
