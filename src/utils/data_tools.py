@@ -6,6 +6,33 @@ from skimage.transform import resize
 from PIL import Image
 
 
+def rescale_data(image, filename):
+    """Resize all the images to the same size.
+
+    Args:
+        image (dict): training/validation/test image dataset.
+
+    Returns:
+        None. Save rescaled image in a new folder.
+
+    """
+    # 1. Resize all the images to the same size,
+    # 2. Save to new directory
+
+    dstdir = "../data/rescaled_data"
+
+    # If dest directory not exists, create dir
+    if not os.path.isdir(dstdir):
+        os.mkdir(dstdir)
+
+    idx = 0
+    for img in image['image']:
+        # Resize all the images to (24, 24)
+        rescaled_img = resize(img, (24, 24), mode='reflect')
+        io.imsave(os.path.join(dstdir, filename[0]), rescaled_img)
+        idx += 1
+
+
 def preprocess_data(img_data_dir, img_output_dir, process_method='default'):
     """Preprocesse images.
 
