@@ -1,7 +1,6 @@
 matplotlib
 numpy
 Pillow
-pycodestyle
 scikit-image
 scikit-learn
 scipy
