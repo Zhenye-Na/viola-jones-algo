@@ -23,8 +23,6 @@ def rescale_data(image, filename, feature_type):
     2. Resize all the images to the same size,
     3. Save to new directory
     """
-    # data = process_data(image, feature_type)
-
     dstdir = "../data/image_data/rescaled_data/"
 
     # If dest directory not exists, create dir
@@ -45,7 +43,7 @@ def rescale_data(image, filename, feature_type):
     for img in new_image['image']:
         # Resize all the images to same size
         rescaled_img = resize(img, (64, 64), mode='reflect')
-        io.imsave(os.path.join(dstdir, filename[0]), rescaled_img)
+        io.imsave(os.path.join(dstdir, filename[idx]), rescaled_img)
         idx += 1
 
 
