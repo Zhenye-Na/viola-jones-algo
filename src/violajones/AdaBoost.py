@@ -61,3 +61,12 @@ def AdaBoost(images, groundtruth_labels, num_pos, num_neg, feature_size=0):
 
     # Create features for all sizes and locations
     pass
+
+
+def feature_generate():
+    """Features generation for Viola Jones Face Detection.
+
+    Generate features for all 5 type, all feature size, all training images
+
+    """
+    pass
