@@ -3,10 +3,10 @@ Course Project of CS543: Computer Vision in Spring 2018, UIUC
 Implementation of the face detection algorithm by Paul Viola and Michael J. Jones.
 
 ## Requirement
-* Python 3.5
-* OpenCV 3.1.0
-* Numpy
-* TBA
+* numpy
+* Pillow
+* scikit-image
+* tensorflow
 
 ## Outline
 TBA
