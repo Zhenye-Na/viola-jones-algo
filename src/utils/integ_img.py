@@ -6,10 +6,6 @@ import numpy as np
 def integral_image(image):
     """Integral image / summed area table.
 
-    ----------
-    Perform the same algorithm as skimage.transform.integral.integral_image(x)
-    ----------
-
     The integral image contains the sum of all elements above and to the
     left of it, i.e.:
     .. math::
