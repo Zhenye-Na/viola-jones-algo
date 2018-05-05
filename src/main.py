@@ -8,6 +8,8 @@ from utils.integ_img import integral_image
 from utils.integ_img import integral_image2
 from utils.integ_img import integrate
 
+from violajones.Adaboost import Adaboost
+
 import tensorflow as tf
 import numpy as np
 import skimage
@@ -37,13 +39,16 @@ flags.DEFINE_string('testtxtdir', '../data/test.txt', 'test data directory')
 flags.DEFINE_string('totaltxtdir', '../data/total.txt',
                     'all the image directory')
 
-
 # Image directory
 flags.DEFINE_string('imgdir', '../data/image_data/', 'image data directory')
 flags.DEFINE_string('preprocesed_imgdir', '../data/preprocessed_data/',
                     'preprocessed image data directory')
 flags.DEFINE_string('rescaled_imgdir', '../data/rescaled_data/',
                     'rescaled image data directory')
+
+###############################################################################
+# Paramentes here is for finding bugs ^_^!
+###############################################################################
 
 
 def main(_):
@@ -75,23 +80,39 @@ def main(_):
     preprocess_data(rescaled_imgdir, preprocesed_imgdir, preprocess_method)
 
     # Load train/val/test set
-    train_set, _ = read_dataset(traintxtdir, preprocesed_imgdir)
-    train_image = train_set['image']
-    train_label = train_set['label']
-    positive_train_img_num = np.sum(train_label == 1)
-    negative_train_img_num = np.sum(train_label == 0)
+    print("[*] Loading training set...")
+    try:
+        train_set, _ = read_dataset(traintxtdir, preprocesed_imgdir)
+        train_image = train_set['image']
+        train_label = train_set['label']
+        positive_train_img_num = np.sum(train_label == 1)
+        negative_train_img_num = np.sum(train_label == 0)
+    except:
+        print("[*] Oops! Please try loading training set again...")
+    print("[*] Loading training set successfully!")
+    print("[*] " + str(positive_train_img_num) + " faces loaded! " +
+          str(negative_train_img_num) + " non-faces loaded!")
 
-    val_set, _ = read_dataset(valtxtdir, preprocesed_imgdir)
-    val_image = val_set['image']
-    val_label = val_set['label']
-    positive_val_img_num = np.sum(val_label == 1)
-    negative_val_img_num = np.sum(val_label == 0)
+    # print("[*] Loading val set...")
+    # val_set, _ = read_dataset(valtxtdir, preprocesed_imgdir)
+    # val_image = val_set['image']
+    # val_label = val_set['label']
+    # positive_val_img_num = np.sum(val_label == 1)
+    # negative_val_img_num = np.sum(val_label == 0)
 
-    test_set, _ = read_dataset(testtxtdir, preprocesed_imgdir)
-    test_image = test_set['image']
-    test_label = test_set['label']
-    positive_test_img_num = np.sum(test_label == 1)
-    negative_test_img_num = np.sum(test_label == 0)
+    # print("[*] Loading test set...")
+    # test_set, _ = read_dataset(testtxtdir, preprocesed_imgdir)
+    # test_image = test_set['image']
+    # test_label = test_set['label']
+    # positive_test_img_num = np.sum(test_label == 1)
+    # negative_test_img_num = np.sum(test_label == 0)
+
+    # Compute integral image of dataset
+    for image in train_image:
+        image = integral_image(image)
+
+    # Adaboost and Cascade classifiers
+    AdaBoost(train_image, train_label, positive_train_img_num, negative_train_img_num, feature_size=0)
 
 
 if __name__ == '__main__':
