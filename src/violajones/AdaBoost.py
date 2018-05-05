@@ -78,23 +78,53 @@ def AdaBoost(images, groundtruth_labels, num_pos, num_neg, feature_size=0):
     # Create features for all sizes and locations
     features = feature_generate(img_height, img_width, feature_height, feature_width)
     num_features = len(features)
+    num_classifiers = 666
+    feature_idx = list(range(min(num_classifiers, num_features)))
+
     print("[*] Generated " + str(num_features) + "features!")
 
     votes = np.zeros((num_images, num_features))
     for idx in tqdm(range(num_images)):
         votes[idx, :] = np.array(list(map(partial(get_delta, image=images[idx]), features)))
 
+    # ----------------------------------------------------------------------- #
+    # Adboost - selecting classifiers
+
+    classifiers = []
+
+    for i in tqdm(range(min(num_classifiers, num_features))):
+
+        pred = np.zeros(len(feature_idx))
+
+        # Normalize weight
+        weights = 1. / np.sum(weights)
+
+        for j in range(len(feature_idx)):
+            idx = feature_idx[j]
+            error = sum(map(lambda img_idx: weights[img_idx] if labels[img_idx] != votes[img_idx, f_idx] else 0, range(num_imgs)))
+            pred[j] = error
 
     # ----------------------------------------------------------------------- #
+        # Select best feature
+        min_error_idx = np.argmin(pred)
+        best_error = pred[min_error_idx]
+        best_feature_idx = feature_idx[min_error_idx]
 
+        # Set feature weight
+        best_feature = features[best_feature_idx]
+        feature_weight = 0.5 * np.log((1 - best_error) / best_error)
+        best_feature.weight = feature_weight
 
-
+        classifiers.append(best_feature)
 
     # ----------------------------------------------------------------------- #
+        # update image weights
+        weights = np.array(list(map(lambda img_idx: weights[img_idx] * np.sqrt((1 - best_error) / best_error) if labels[img_idx] != votes[img_idx, best_feature_idx] else weights[img_idx] * np.sqrt(best_error / (1 - best_error)), range(num_imgs))))
 
+        # Remove selected feature
+        feature_idx.remove(best_feature_idx)
 
-
-    # ----------------------------------------------------------------------- #
+    return classifiers
 
 
 def feature_generate(img_height, img_width, feature_height, feature_width):
