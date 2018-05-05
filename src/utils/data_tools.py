@@ -50,6 +50,8 @@ def rescale_data(image, filename, feature_type):
 def preprocess_data(img_data_dir, img_output_dir, preprocess_method='default'):
     """Preprocesse images.
 
+    Change image from XXX to gray-scale
+
     Args:
         process_method(str): processing methods needs to support
           ['default', 'lab', 'hsv'].
@@ -110,7 +112,7 @@ def preprocess_data(img_data_dir, img_output_dir, preprocess_method='default'):
         for imname in os.listdir(inpdir):
             img = Image.open(os.path.join(inpdir, imname))
             if img.mode == 'RGBA':
-                # required for img.split()
+
                 img.load()
 
                 # Creates a new image using `RGB` mode.

@@ -30,7 +30,7 @@ def integral_image(image):
 
 
 def integral_image2(image):
-    """Calculates the integral image based on this instance's original image data.
+    """Calculate the integral image based on this instance's original image data.
 
     In an integral image each pixel is the sum of all pixels in the original
     image that are 'left and above' the pixel.
