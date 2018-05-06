@@ -66,91 +66,75 @@ class HaarFeature(object):
         # Initialize delta (score)
         delta = 0
 
-        # Size of feature window
-        w = self.width
-        h = self.height
+        # # Size of feature window
+        # w = self.width
+        # h = self.height
 
-        # Two columns/rows
-        left_col = int(w / 2)
-        up_row = int(h / 2)
+        # # Two columns/rows
+        # left_col = int(w / 2)
+        # up_row = int(h / 2)
 
-        # Three columns/rows
-        left_c = int(w / 3)
-        middle_c = int(w / 3) * 2
+        # # Three columns/rows
+        # left_c = int(w / 3)
+        # middle_c = int(w / 3) * 2
 
-        up_r = int(h / 3)
-        middle_r = int(h / 3) * 2
+        # up_r = int(h / 3)
+        # middle_r = int(h / 3) * 2
 
-        # Initial coordinates
-        x1 = self.top_left[0]
-        y1 = self.top_left[1]
+        # # Initial coordinates
+        # x1 = self.top_left[0]
+        # y1 = self.top_left[1]
 
-        x2 = self.bottom_right[0]
-        y2 = self.bottom_right[1]
+        # x2 = self.bottom_right[0]
+        # y2 = self.bottom_right[1]
 
         # compute delta
         if self.type == 'type-2-y':
 
-            white_sum = ii.integrate(itg_image,
-                                     [(x1, y1), (x2, y1 + left_col)])
+            white_sum = ii.integrate(itg_image, self.top_left, (self.top_left[0] + self.width, int(self.top_left[1] + self.height / 2)))
 
-            black_sum = ii.integrate(itg_image,
-                                     [(x1, y1 + left_col + 1), (x2, y2)])
+            black_sum = ii.integrate(itg_image, (self.top_left[0], int(self.top_left[1] + self.height / 2)), self.bottom_right)
 
             delta = black_sum - white_sum
 
         elif self.type == 'type-2-x':
-            black_sum = ii.integrate(itg_image,
-                                     [(x1, y1), (x1 + up_row, y2)])
+            black_sum = ii.integrate(itg_image, self.top_left, (int(self.top_left[0] + self.width / 2), self.top_left[1] + self.height))
 
-            white_sum = ii.integrate(itg_image,
-                                     [(x1 + up_row + 1, y1), (x2, y2)])
+            white_sum = ii.integrate(itg_image, (int(self.top_left[0] + self.width / 2), self.top_left[1]), self.bottom_right)
 
             delta = black_sum - white_sum
 
         elif self.type == 'type-3-y':
-            black_sum = ii.integrate(itg_image,
-                                     [(x1, y1 + left_c), (x2, y1 + left_c + middle_c - 1)])
+            black_sum = ii.integrate(itg_image, self.top_left, (self.bottom_right[0], int(self.top_left[1] + self.height / 3)))
 
-            white_sum = ii.integrate(itg_image,
-                                     [(x1, y1), (x2, y1 + left_c - 1)]) + ii.integrate(itg_image,
-                                                                                       [(x1, y1 + left_c + middle_c), (x2, y2)])
+            white_sum = ii.integrate(itg_image, (self.top_left[0], int(self.top_left[1] + self.height / 3)), (self.bottom_right[0], int(self.top_left[1] + 2 * self.height / 3))) + ii.integrate(itg_image, (self.top_left[0], int(self.top_left[1] + 2 * self.height / 3)), self.bottom_right)
 
             delta = black_sum - white_sum
 
         elif self.type == 'type-3-x':
-            black_sum = ii.integrate(itg_image,
-                                     [(x1 + up_r + 1, y1), (x1 + up_r + middle_r - 1, y2)])
 
-            white_sum = ii.integrate(itg_image,
-                                     [(x1, y1), (x1 + up_r, y2)]) + ii.integrate(itg_image,
-                                                                                 [(x1 + up_r + middle_r, y1), (x2, y2)])
+            black_sum = ii.integrate(itg_image, self.top_left, (int(self.top_left[0] + self.width / 3), self.top_left[1] + self.height))
+
+            white_sum = ii.integrate(itg_image, (int(self.top_left[0] + self.width / 3), self.top_left[1]), (int(self.top_left[0] + 2 * self.width / 3), self.top_left[1] + self.height)) + ii.integrate(itg_image, (int(self.top_left[0] + 2 * self.width / 3), self.top_left[1]), self.bottom_right)
 
             delta = black_sum - white_sum
 
         elif self.type == 'type-4':
             # top left area
             first = ii.integrate(itg_image,
-                                 self.top_left,
-                                 (int(self.top_left[0] + self.width / 2), int(self.top_left[1] + self.height / 2)))
+                                 self.top_left, [(int(self.top_left[0] + self.width / 2), int(self.top_left[1] + self.height / 2))])
 
             # top right area
             second = ii.integrate(itg_image,
-                                  (int(
-                                      self.top_left[0] + self.width / 2), self.top_left[1]),
-                                  (self.bottom_right[0], int(self.top_left[1] + self.height / 2)))
+                                  [(int(self.top_left[0] + self.width / 2), self.top_left[1])], [(self.bottom_right[0], int(self.top_left[1] + self.height / 2))])
 
             # bottom left area
             third = ii.integrate(itg_image,
-                                 (self.top_left[0], int(
-                                     self.top_left[1] + self.height / 2)),
-                                 (int(self.top_left[0] + self.width / 2), self.bottom_right[1]))
+                                 [(self.top_left[0], int(self.top_left[1] + self.height / 2))], [(int(self.top_left[0] + self.width / 2), self.bottom_right[1])])
 
             # bottom right area
             fourth = ii.integrate(itg_image,
-                                  (int(self.top_left[0] + self.width / 2),
-                                   int(self.top_left[1] + self.height / 2)),
-                                  self.bottom_right)
+                                  [(int(self.top_left[0] + self.width / 2), int(self.top_left[1] + self.height / 2))], [self.bottom_right])
 
             delta = second + third - (first + fourth)
 
