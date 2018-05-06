@@ -8,7 +8,9 @@ from utils.integ_img import integral_image
 from utils.integ_img import integral_image2
 from utils.integ_img import integrate
 
-from violajones.Adaboost import Adaboost
+from utils.ensemble import ensemble_vote_all
+
+from violajones.AdaBoost import AdaBoost
 
 import tensorflow as tf
 import numpy as np
@@ -93,73 +95,47 @@ def main(_):
     print("[*] " + str(positive_train_img_num) + " faces loaded! " +
           str(negative_train_img_num) + " non-faces loaded!")
 
-    # print("[*] Loading val set...")
-    # val_set, _ = read_dataset(valtxtdir, preprocesed_imgdir)
-    # val_image = val_set['image']
-    # val_label = val_set['label']
-    # positive_val_img_num = np.sum(val_label == 1)
-    # negative_val_img_num = np.sum(val_label == 0)
-
-    # print("[*] Loading test set...")
-    # test_set, _ = read_dataset(testtxtdir, preprocesed_imgdir)
-    # test_image = test_set['image']
-    # test_label = test_set['label']
-    # positive_test_img_num = np.sum(test_label == 1)
-    # negative_test_img_num = np.sum(test_label == 0)
-
-    # Compute integral image of dataset
+    # Compute integral image of training set
     for image in train_image:
         image = integral_image(image)
 
     # Adaboost and Cascade classifiers
-    classifiers = Adaboost(train_image, train_label,
+    classifiers = AdaBoost(train_image, train_label,
                            positive_train_img_num,
                            negative_train_img_num,
                            feature_size=0)
 
-    print("[*] Loading val set...")
+    print("[*] Loading test set...")
     try:
-        val_set, _ = read_dataset(valtxtdir, preprocesed_imgdir)
-        val_image = val_set['image']
-        val_label = val_set['label']
-        positive_val_img_num = np.sum(val_label == 1)
-        negative_val_img_num = np.sum(val_label == 0)
+        test_set, _ = read_dataset(testtxtdir, rescaled_imgdir)
+        test_image = test_set['image']
+        test_label = test_set['label']
+        positive_test_img_num = np.sum(test_label == 1)
+        negative_test_img_num = np.sum(test_label == 0)
     except:
-        print("[*] Oops! Please try loading training set again...")
-    print("[*] Loading training set successfully!")
-    print("[*] " + str(positive_train_img_num) + " faces loaded! " +
-          str(negative_train_img_num) + " non-faces loaded!")
+        print("[*] Oops! Please try loading test set again...")
+    print("[*] Loading test set successfully!")
+    print("[*] " + str(positive_test_img_num) + " faces loaded! " +
+          str(negative_test_img_num) + " non-faces loaded!")
 
+    # Compute integral image of test set
+    for image in test_image:
+        image = integral_image(image)
 
-    val_set, _ = read_dataset(valtxtdir, preprocesed_imgdir)
-    val_image = val_set['image']
-    val_label = val_set['label']
-    positive_val_img_num = np.sum(val_label == 1)
-    negative_val_img_num = np.sum(val_label == 0)
+    # Start test
+    print("[*] Start testing...")
 
-    print('Loading test faces..')
-    faces_testing = utils.load_images(pos_testing_path)
-    faces_ii_testing = list(map(ii.to_integral_image, faces_testing))
-    print('..done. ' + str(len(faces_testing)) + ' faces loaded.\n\nLoading test non faces..')
-    non_faces_testing = utils.load_images(neg_testing_path)
-    non_faces_ii_testing = list(map(ii.to_integral_image, non_faces_testing))
-    print('..done. ' + str(len(non_faces_testing)) + ' non faces loaded.\n')
+    pred_pos = sum(ensemble_vote_all(test_image, classifiers))
+    acc_pos = float(pred_pos / positive_test_img_num)
 
-    print('Testing selected classifiers..')
-    correct_faces = 0
-    correct_non_faces = 0
-    correct_faces = sum(utils.ensemble_vote_all(faces_ii_testing, classifiers))
-    correct_non_faces = len(non_faces_testing) - sum(utils.ensemble_vote_all(non_faces_ii_testing, classifiers))
+    pred_neg = positive_test_img_num + negative_test_img_num - pred_pos
+    acc_neg = float(pred_neg / negative_test_img_num)
 
-    print('..done.\n\nResult:\n      Faces: ' + str(correct_faces) + '/' + str(len(faces_testing))
-          + '  (' + str((float(correct_faces) / len(faces_testing)) * 100) + '%)\n  non-Faces: '
-          + str(correct_non_faces) + '/' + str(len(non_faces_testing)) + '  ('
-          + str((float(correct_non_faces) / len(non_faces_testing)) * 100) + '%)')
-
-    # Just for fun: putting all haar-like features over each other generates a face-like image
-    recon = utils.reconstruct(classifiers, faces_testing[0].shape)
-    recon.save('reconstruction.png')
-
+    print("[*] Test done!")
+    print("Faces " + str(pred_pos) + "/" +
+          str(positive_test_img_num) + "accuracy: " + str(acc_pos))
+    print("objects " + str(pred_neg) + "/" +
+          str(negative_test_img_num) + "accuracy: " + str(acc_neg))
 
 
 if __name__ == '__main__':
