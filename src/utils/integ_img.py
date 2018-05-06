@@ -105,6 +105,7 @@ def integrate(ii, start, end):
     # convert negative indices into equivalent positive indices
     start_negatives = start < 0
     end_negatives = end < 0
+
     start = (start + total_shape) * start_negatives + \
         start * ~(start_negatives)
     end = (end + total_shape) * end_negatives + \

@@ -23,7 +23,7 @@ def rescale_data(image, filename, feature_type):
     2. Resize all the images to the same size,
     3. Save to new directory
     """
-    dstdir = "../data/image_data/rescaled_data/"
+    dstdir = "../data/rescaled_data/"
 
     # If dest directory not exists, create dir
     if not os.path.isdir(dstdir):
@@ -32,19 +32,23 @@ def rescale_data(image, filename, feature_type):
     data = {}
     data['image'] = []
 
+    idx = 0
     for img in image['image']:
         # Resize all the images to same size
-        rescaled_img = resize(img, (64, 64), mode='reflect')
+        rescaled_img = resize(color.rgb2gray(img), (64, 64), mode='reflect')
         data['image'].append(rescaled_img)
-
-    new_image = process_data(data, feature_type)
-
-    idx = 0
-    for img in new_image['image']:
-        # Resize all the images to same size
-        rescaled_img = resize(img, (64, 64), mode='reflect')
-        io.imsave(os.path.join(dstdir, filename[idx]), rescaled_img)
+        io.imsave(dstdir + str(filename[idx]) + ".jpg", rescaled_img)
         idx += 1
+
+    # new_data = process_data(data, feature_type)
+
+    # idx = 0
+    # for img in new_data['image']:
+    #     # Resize all the images to same size
+    #     print(img.shape)
+    #     rescaled_img = resize(img, (64, 64), mode='reflect')
+    #     io.imsave(dstdir + str(filename[idx]) + ".jpg", rescaled_img)
+    #     idx += 1
 
 
 def preprocess_data(img_data_dir, img_output_dir, preprocess_method='default'):
@@ -193,8 +197,8 @@ def process_data(data, process_method='default'):
 
     elif process_method == 'default':
         # Convert images to range [0,1]
-        scaled_image = data['image'] / 255
-        N = len(scaled_image)
+        data['image'] = [image / 255 for image in data['image']]
+        # N = len(scaled_image)
 
         # Convert from rgb to gray then back to rgb
         grayscale = color.rgb2gray(scaled_image)
