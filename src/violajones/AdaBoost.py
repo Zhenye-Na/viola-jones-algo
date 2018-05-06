@@ -4,6 +4,7 @@
 import numpy as np
 from tqdm import tqdm
 from functools import partial
+from multiprocessing import Pool
 from violajones.HaarFeature import HaarFeature
 # from functools import partial
 # import numpy as np
@@ -37,19 +38,15 @@ def AdaBoost(images, groundtruth_labels, num_pos, num_neg, feature_size=0):
 
     Args:
         images (np.ndarray): Integral training images include positive images
-            and negative images. dimension (N * height * width)
+            and negative images.
         groundtruth_labels (np.ndarray): training images labels, including
-            only 0 and 1.
+            only 0 for non-faces and 1 for faces.
         num_pos (int): number of positive image samples
         num_neg (int): number of negative image samples
         feature_size (int): size of features
 
-    :param num_classifiers: Number of classifiers to select, -1 will use all
-    classifiers
-    :type num_classifiers: int
-    :return: List of selected features
-    :rtype: list[violajones.HaarLikeFeature.HaarLikeFeature]
-
+    Returns:
+        classifiers (list): list of weak classifiers
 
     """
     # ----------------------------------------------------------------------- #
@@ -58,11 +55,11 @@ def AdaBoost(images, groundtruth_labels, num_pos, num_neg, feature_size=0):
     # number of all the images
     num_images = num_pos + num_neg
 
-    # image shape (img_height, img_width)
+    # image shape
     img_height, img_width = images[0].shape
 
     # Maximum feature width and height default to image width and height
-    default_size = 24
+    default_size = 10
     feature_height = default_size if feature_size == 0 else img_height
     feature_width = default_size if feature_size == 0 else img_width
 
@@ -78,30 +75,31 @@ def AdaBoost(images, groundtruth_labels, num_pos, num_neg, feature_size=0):
     # Create features for all sizes and locations
     features = feature_generate(img_height, img_width, feature_height, feature_width)
     num_features = len(features)
-    num_classifiers = 666
-    feature_idx = list(range(min(num_classifiers, num_features)))
+    print("\n[*] Generated " + str(num_features) + " features!")
 
-    print("[*] Generated " + str(num_features) + "features!")
+    feature_idx = list(range(num_features))
 
     votes = np.zeros((num_images, num_features))
+    pool = Pool(processes=None)
     for idx in tqdm(range(num_images)):
-        votes[idx, :] = np.array(list(map(partial(get_delta, image=images[idx]), features)))
+        votes[idx, :] = np.array(list(pool.map(partial(get_delta, image=images[idx]), features))).T
 
     # ----------------------------------------------------------------------- #
     # Adboost - selecting classifiers
 
     classifiers = []
 
-    for i in tqdm(range(min(num_classifiers, num_features))):
+    print("[*] Selecting classifiers...\n")
+    for i in tqdm(range(num_features)):
 
         pred = np.zeros(len(feature_idx))
 
         # Normalize weight
-        weights = 1. / np.sum(weights)
+        weights *= 1. / np.sum(weights)
 
         for j in range(len(feature_idx)):
             idx = feature_idx[j]
-            error = sum(map(lambda img_idx: weights[img_idx] if labels[img_idx] != votes[img_idx, f_idx] else 0, range(num_imgs)))
+            error = sum(map(lambda img_idx: weights[img_idx] if labels[img_idx] != votes[img_idx, idx] else 0, range(num_images)))
             pred[j] = error
 
     # ----------------------------------------------------------------------- #
@@ -119,7 +117,7 @@ def AdaBoost(images, groundtruth_labels, num_pos, num_neg, feature_size=0):
 
     # ----------------------------------------------------------------------- #
         # update image weights
-        weights = np.array(list(map(lambda img_idx: weights[img_idx] * np.sqrt((1 - best_error) / best_error) if labels[img_idx] != votes[img_idx, best_feature_idx] else weights[img_idx] * np.sqrt(best_error / (1 - best_error)), range(num_imgs))))
+        weights = np.array(list(map(lambda img_idx: weights[img_idx] * np.sqrt((1 - best_error) / best_error) if labels[img_idx] != votes[img_idx, best_feature_idx] else weights[img_idx] * np.sqrt(best_error / (1 - best_error)), range(num_images))))
 
         # Remove selected feature
         feature_idx.remove(best_feature_idx)
@@ -139,16 +137,16 @@ def feature_generate(img_height, img_width, feature_height, feature_width):
 
     """
     features = []
-    print("[*] Generate features...")
+    print("[*] Generating features...")
     for feature in FEATURE_TYPE:
         # default width
         width = FEATURE_TYPE[feature][0]
 
-        for filter_width in tqdm(range(width, feature_width, width)):
+        for filter_width in tqdm(range(8, feature_width, width)):
             # default height
             height = FEATURE_TYPE[feature][1]
 
-            for filter_height in tqdm(range(height, feature_height, height)):
+            for filter_height in tqdm(range(8, feature_height, height)):
                 for i in range(img_width - filter_width):
                     for j in range(img_height - filter_height):
                         # negative examples

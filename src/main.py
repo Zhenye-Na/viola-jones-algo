@@ -112,7 +112,54 @@ def main(_):
         image = integral_image(image)
 
     # Adaboost and Cascade classifiers
-    AdaBoost(train_image, train_label, positive_train_img_num, negative_train_img_num, feature_size=0)
+    classifiers = Adaboost(train_image, train_label,
+                           positive_train_img_num,
+                           negative_train_img_num,
+                           feature_size=0)
+
+    print("[*] Loading val set...")
+    try:
+        val_set, _ = read_dataset(valtxtdir, preprocesed_imgdir)
+        val_image = val_set['image']
+        val_label = val_set['label']
+        positive_val_img_num = np.sum(val_label == 1)
+        negative_val_img_num = np.sum(val_label == 0)
+    except:
+        print("[*] Oops! Please try loading training set again...")
+    print("[*] Loading training set successfully!")
+    print("[*] " + str(positive_train_img_num) + " faces loaded! " +
+          str(negative_train_img_num) + " non-faces loaded!")
+
+
+    val_set, _ = read_dataset(valtxtdir, preprocesed_imgdir)
+    val_image = val_set['image']
+    val_label = val_set['label']
+    positive_val_img_num = np.sum(val_label == 1)
+    negative_val_img_num = np.sum(val_label == 0)
+
+    print('Loading test faces..')
+    faces_testing = utils.load_images(pos_testing_path)
+    faces_ii_testing = list(map(ii.to_integral_image, faces_testing))
+    print('..done. ' + str(len(faces_testing)) + ' faces loaded.\n\nLoading test non faces..')
+    non_faces_testing = utils.load_images(neg_testing_path)
+    non_faces_ii_testing = list(map(ii.to_integral_image, non_faces_testing))
+    print('..done. ' + str(len(non_faces_testing)) + ' non faces loaded.\n')
+
+    print('Testing selected classifiers..')
+    correct_faces = 0
+    correct_non_faces = 0
+    correct_faces = sum(utils.ensemble_vote_all(faces_ii_testing, classifiers))
+    correct_non_faces = len(non_faces_testing) - sum(utils.ensemble_vote_all(non_faces_ii_testing, classifiers))
+
+    print('..done.\n\nResult:\n      Faces: ' + str(correct_faces) + '/' + str(len(faces_testing))
+          + '  (' + str((float(correct_faces) / len(faces_testing)) * 100) + '%)\n  non-Faces: '
+          + str(correct_non_faces) + '/' + str(len(non_faces_testing)) + '  ('
+          + str((float(correct_non_faces) / len(non_faces_testing)) * 100) + '%)')
+
+    # Just for fun: putting all haar-like features over each other generates a face-like image
+    recon = utils.reconstruct(classifiers, faces_testing[0].shape)
+    recon.save('reconstruction.png')
+
 
 
 if __name__ == '__main__':
