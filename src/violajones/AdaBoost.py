@@ -3,6 +3,7 @@
 
 import numpy as np
 from tqdm import tqdm
+from numba import jit
 from functools import partial
 from multiprocessing import Pool
 from violajones.HaarFeature import HaarFeature
@@ -21,6 +22,7 @@ FEATURE_TYPE = {'type-2-y': (1, 2),
                 'type-4': (2, 2)}
 
 
+@jit
 def AdaBoost(images, groundtruth_labels, num_pos, num_neg, feature_size=0):
     """Perform Adaboost Algorithm in Viola Jones Face Detection.
 
@@ -99,7 +101,7 @@ def AdaBoost(images, groundtruth_labels, num_pos, num_neg, feature_size=0):
 
         for j in range(len(feature_idx)):
             idx = feature_idx[j]
-            error = sum(map(lambda img_idx: weights[img_idx] if labels[img_idx] != votes[img_idx, idx] else 0, range(num_images)))
+            error = sum(pool.map(lambda img_idx: weights[img_idx] if labels[img_idx] != votes[img_idx, idx] else 0, range(num_images)))
             pred[j] = error
 
     # ----------------------------------------------------------------------- #
@@ -117,7 +119,7 @@ def AdaBoost(images, groundtruth_labels, num_pos, num_neg, feature_size=0):
 
     # ----------------------------------------------------------------------- #
         # update image weights
-        weights = np.array(list(map(lambda img_idx: weights[img_idx] * np.sqrt((1 - best_error) / best_error) if labels[img_idx] != votes[img_idx, best_feature_idx] else weights[img_idx] * np.sqrt(best_error / (1 - best_error)), range(num_images))))
+        weights = np.array(list(pool.map(lambda img_idx: weights[img_idx] * np.sqrt((1 - best_error) / best_error) if labels[img_idx] != votes[img_idx, best_feature_idx] else weights[img_idx] * np.sqrt(best_error / (1 - best_error)), range(num_images))))
 
         # Remove selected feature
         feature_idx.remove(best_feature_idx)
@@ -125,6 +127,7 @@ def AdaBoost(images, groundtruth_labels, num_pos, num_neg, feature_size=0):
     return classifiers
 
 
+@jit
 def feature_generate(img_height, img_width, feature_height, feature_width):
     """Features generation.
 
@@ -152,16 +155,17 @@ def feature_generate(img_height, img_width, feature_height, feature_width):
                         # negative examples
                         features.append(HaarFeature(feature, (i, j),
                                                     filter_width,
-                                                    filter_height, 0.05, 0))
+                                                    filter_height, 0.01, 0))
 
                         # positive examples
                         features.append(HaarFeature(feature, (i, j),
                                                     filter_width,
-                                                    filter_height, 0.05, 1))
+                                                    filter_height, 0.01, 1))
 
     return features
 
 
+@jit
 def get_delta(feature, image):
     """Get delta from those features."""
     return feature._get_delta(image)

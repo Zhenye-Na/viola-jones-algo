@@ -1,5 +1,6 @@
 """Haar-Like Features model."""
 
+from numba import jit
 import utils.integ_img as ii
 
 
@@ -46,6 +47,7 @@ class HaarFeature(object):
             self.polarity = -1
         self.weight = 1
 
+    @jit
     def _get_delta(self, itg_image):
         """Compute delta from Haar-Like Features.
 
@@ -140,6 +142,7 @@ class HaarFeature(object):
 
         return delta
 
+    @jit
     def _get_vote(self, itg_image):
         """Get vote of this feature for given integral image.
 
