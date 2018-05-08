@@ -1,4 +1,3 @@
-~/face_detect/detection> python3 main.py 
 [*] Loading training set...
 [*] Loading training set successfully!
 [*] 85 faces loaded! 70 non-faces loaded!
@@ -36,14 +35,14 @@
 [*] Got 145 votes now!
 [*] Got 150 votes now!
 [*] Generated 30056 features!
-[*] Selecting 20 classifiers...
+[*] Selecting 15 classifiers...
 [*] Selected 0 classifiers now!
 [*] Selected 5 classifiers now!
 [*] Selected 10 classifiers now!
-[*] Selected 15 classifiers now!
 [*] Loading test set...
 [*] Loading test set successfully!
 [*] 60 faces loaded! 45 non-faces loaded!
 [*] Start testing...
 [*] Test done!
-Faces [54 / 60] accuracy: 0.9
+Faces [29 / 60] accuracy: 0.48333333333333334
+Objects [19 / 45] accuracy: 0.48333333333333334
