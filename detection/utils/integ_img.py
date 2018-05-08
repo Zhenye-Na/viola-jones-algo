@@ -36,7 +36,7 @@ def integral_image2(image):
     image that are 'left and above' the pixel.
     Original    Integral
     +--------   +------------
-    | 1 2 3 .   | 0  0  0  0 .
+    | 1 2 3 .   | 0  0  0  0 .c
     | 4 5 6 .   | 0  1  3  6 .
     | . . . .   | 0  5 12 21 .
                 | . . . . . .
@@ -53,7 +53,9 @@ def integral_image2(image):
     row_sum = np.zeros(image.shape)
 
     # we need an additional column and row
+    print(image.shape)
     S = np.zeros((image.shape[0] + 1, image.shape[1] + 1))
+    print("here")
     for x in range(image.shape[1]):
         for y in range(image.shape[0]):
             row_sum[y, x] = row_sum[y - 1, x] + image[y, x]

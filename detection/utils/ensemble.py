@@ -20,7 +20,7 @@ def ensemble_vote(int_img, classifiers):
         return 1 iff sum of classifier votes is greater 0, else 0
 
     """
-    vote = sum([classifier._get_delta(int_img) for classifier in classifiers])
+    vote = sum([classifier._get_vote(int_img) for classifier in classifiers])
 
     if vote >= 0:
         return 1

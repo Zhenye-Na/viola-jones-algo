@@ -1,30 +1,49 @@
-$ python3 main.py 
+~/face_detect/detection> python3 main.py 
 [*] Loading training set...
-[*] 12 faces loaded! 0 non-faces loaded!
 [*] Loading training set successfully!
+[*] 85 faces loaded! 70 non-faces loaded!
 [*] Generating features...
-100%|████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00, 21.55it/s]
-100%|████████████████████████████████████████████████████████████████| 1/1 [00:00<00:00, 33.21it/s]
-100%|████████████████████████████████████████████████████████████████| 2/2 [00:00<00:00, 67.52it/s]
-[*] Generated 24864 features!
-100%|██████████████████████████████████████████████████████████████| 12/12 [01:30<00:00,  7.56s/it]
-[*] Selecting classifiers...
-
- 11%|█████▊                                                 | 2648/24864 [10:16<1:26:13,  4.29it/s]
-/Users/macbookpro/bw/face_detect/src/violajones/AdaBoost.py:117: RuntimeWarning: divide by zero encountered in log
-  feature_weight = 0.5 * np.log((1 - best_error) / best_error)
- 11%|█████▊                                                 | 2649/24864 [10:16<1:26:13,  4.29it/s]
-/Users/macbookpro/bw/face_detect/src/violajones/AdaBoost.py:102: RuntimeWarning: divide by zero encountered in double_scalars
-  weights *= 1. / np.sum(weights)
-/Users/macbookpro/bw/face_detect/src/violajones/AdaBoost.py:102: RuntimeWarning: invalid value encountered in multiply
-  weights *= 1. / np.sum(weights)
-100%|████████████████████████████████████████████████████████| 24864/24864 [51:40<00:00,  8.02it/s]
+[*] Getting votes...
+[*] Got 0 votes now!
+[*] Got 5 votes now!
+[*] Got 10 votes now!
+[*] Got 15 votes now!
+[*] Got 20 votes now!
+[*] Got 25 votes now!
+[*] Got 30 votes now!
+[*] Got 35 votes now!
+[*] Got 40 votes now!
+[*] Got 45 votes now!
+[*] Got 50 votes now!
+[*] Got 55 votes now!
+[*] Got 60 votes now!
+[*] Got 65 votes now!
+[*] Got 70 votes now!
+[*] Got 75 votes now!
+[*] Got 80 votes now!
+[*] Got 85 votes now!
+[*] Got 90 votes now!
+[*] Got 95 votes now!
+[*] Got 100 votes now!
+[*] Got 105 votes now!
+[*] Got 110 votes now!
+[*] Got 115 votes now!
+[*] Got 120 votes now!
+[*] Got 125 votes now!
+[*] Got 130 votes now!
+[*] Got 135 votes now!
+[*] Got 140 votes now!
+[*] Got 145 votes now!
+[*] Got 150 votes now!
+[*] Generated 30056 features!
+[*] Selecting 20 classifiers...
+[*] Selected 0 classifiers now!
+[*] Selected 5 classifiers now!
+[*] Selected 10 classifiers now!
+[*] Selected 15 classifiers now!
 [*] Loading test set...
 [*] Loading test set successfully!
-[*] 16 faces loaded! 0 non-faces loaded!
+[*] 60 faces loaded! 45 non-faces loaded!
 [*] Start testing...
-main.py:145: RuntimeWarning: divide by zero encountered in long_scalars
-  acc_neg = float(pred_neg / negative_test_img_num)
 [*] Test done!
-Faces 8/16 accuracy: 0.5
-Objects 8/0 accuracy: inf
+Faces [54 / 60] accuracy: 0.9

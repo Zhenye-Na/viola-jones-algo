@@ -35,7 +35,7 @@ def rescale_data(image, filename, feature_type):
     idx = 0
     for img in image['image']:
         # Resize all the images to same size
-        rescaled_img = resize(color.rgb2gray(img), (64, 64), mode='reflect')
+        rescaled_img = resize(color.rgb2gray(img), (32, 32), mode='reflect')
         data['image'].append(rescaled_img)
         io.imsave(dstdir + str(filename[idx]) + ".jpg", rescaled_img)
         idx += 1
@@ -183,7 +183,7 @@ def process_data(data, process_method='default'):
             image -= image_mean
 
         # Flatten images
-        data['image'] = scaled_image.flatten().reshape(N, 64 * 64 * 3)
+        data['image'] = scaled_image.flatten().reshape(N, 32 * 32 * 3)
 
     elif process_method == 'default':
         # Convert images to range [0,1]
@@ -204,6 +204,6 @@ def process_data(data, process_method='default'):
             image -= image_mean
 
         # Flatten images
-        data['image'] = absval.flatten().reshape(N, 64 * 64 * 3)
+        data['image'] = absval.flatten().reshape(N, 32 * 32 * 3)
 
     return data
