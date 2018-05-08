@@ -2,19 +2,13 @@
 
 from utils.io_tools import read_dataset
 from utils.data_tools import preprocess_data
-from utils.data_tools import process_data
 from utils.data_tools import rescale_data
 from utils.integ_img import integral_image
-from utils.integ_img import integral_image2
-from utils.integ_img import integrate
-
 from utils.ensemble import ensemble_vote_all
-
 from violajones.AdaBoost import AdaBoost
 
 import tensorflow as tf
 import numpy as np
-import skimage
 
 
 flags = tf.app.flags
@@ -48,10 +42,6 @@ flags.DEFINE_string('preprocesed_imgdir', '../data/preprocessed_data/',
 flags.DEFINE_string('rescaled_imgdir', '../data/rescaled_data/',
                     'rescaled image data directory')
 
-###############################################################################
-# Paramentes here is for finding bugs ^_^!
-###############################################################################
-
 
 def main(_):
     """High level pipeline."""
@@ -63,8 +53,10 @@ def main(_):
 
     # Training/Validation/Testing image txt dir
     traintxtdir = FLAGS.traintxtdir
-    valtxtdir = FLAGS.valtxtdir
+    # valtxtdir = FLAGS.valtxtdir
     testtxtdir = FLAGS.testtxtdir
+
+    # All the image together
     totaltxtdir = FLAGS.totaltxtdir
 
     # Training image dataset dir
@@ -73,6 +65,8 @@ def main(_):
     rescaled_imgdir = FLAGS.rescaled_imgdir
 
     # Read all the images
+    print("# -------------------------------------------------------------- #")
+    print("[*] Reading and preprocessing dataset...")
     raw_dataset, filename = read_dataset(totaltxtdir, imgdir)
 
     # Resize all the images -> save to new folder, all image in same size
@@ -82,6 +76,7 @@ def main(_):
     preprocess_data(rescaled_imgdir, preprocesed_imgdir, preprocess_method)
 
     # Load train/val/test set
+    print("# -------------------------------------------------------------- #")
     print("[*] Loading training set...")
     try:
         train_set, _ = read_dataset(traintxtdir, preprocesed_imgdir)
@@ -91,6 +86,7 @@ def main(_):
         negative_train_img_num = np.sum(train_label == 0)
     except:
         print("[*] Oops! Please try loading training set again...")
+        break
     print("[*] Loading training set successfully!")
     print("[*] " + str(positive_train_img_num) + " faces loaded! " +
           str(negative_train_img_num) + " non-faces loaded!")
@@ -105,6 +101,7 @@ def main(_):
                            negative_train_img_num,
                            feature_size=0)
 
+    print("# -------------------------------------------------------------- #")
     print("[*] Loading test set...")
     try:
         test_set, _ = read_dataset(testtxtdir, rescaled_imgdir)
@@ -114,6 +111,7 @@ def main(_):
         negative_test_img_num = np.sum(test_label == 0)
     except:
         print("[*] Oops! Please try loading test set again...")
+        break
     print("[*] Loading test set successfully!")
     print("[*] " + str(positive_test_img_num) + " faces loaded! " +
           str(negative_test_img_num) + " non-faces loaded!")
@@ -123,19 +121,21 @@ def main(_):
         image = integral_image(image)
 
     # Start test
+    print("# -------------------------------------------------------------- #")
     print("[*] Start testing...")
 
-    pred_pos = sum(ensemble_vote_all(test_image, classifiers))
+    pred_pos = np.sum(np.array(ensemble_vote_all(
+        test_image, classifiers)) == test_label)
     acc_pos = float(pred_pos / positive_test_img_num)
 
-    pred_neg = positive_test_img_num + negative_test_img_num - pred_pos
-    acc_neg = float(pred_neg / negative_test_img_num)
+    # pred_neg = positive_test_img_num + negative_test_img_num - pred_pos
+    # acc_neg = float(pred_neg / negative_test_img_num)
 
     print("[*] Test done!")
     print("Faces " + str(pred_pos) + "/" +
           str(positive_test_img_num) + "accuracy: " + str(acc_pos))
-    print("objects " + str(pred_neg) + "/" +
-          str(negative_test_img_num) + "accuracy: " + str(acc_neg))
+    # print("objects " + str(pred_neg) + "/" +
+    #       str(negative_test_img_num) + "accuracy: " + str(acc_neg))
 
 
 if __name__ == '__main__':

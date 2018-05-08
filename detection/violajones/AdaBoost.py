@@ -3,16 +3,9 @@
 
 import numpy as np
 from tqdm import tqdm
-from numba import jit
 from functools import partial
 from multiprocessing import Pool
 from violajones.HaarFeature import HaarFeature
-# from functools import partial
-# import numpy as np
-# from violajones.HaarLikeFeature import HaarLikeFeature
-# from violajones.HaarLikeFeature import FeatureTypes
-# import progressbar
-# from multiprocessing import Pool
 
 
 FEATURE_TYPE = {'type-2-y': (1, 2),
@@ -22,14 +15,13 @@ FEATURE_TYPE = {'type-2-y': (1, 2),
                 'type-4': (2, 2)}
 
 
-@jit
-def AdaBoost(images, groundtruth_labels, num_pos, num_neg, feature_size=0):
+def AdaBoost(images, num_pos, num_neg, feature_size=0):
     """Perform Adaboost Algorithm in Viola Jones Face Detection.
 
-    Selects a set of classifiers. Iteratively takes the best
-    classifiers based on a weighted error.
+    Select a set of classifiers using Boosting algorithm.
+    Iteratively takes the best classifiers based on a weighted error.
 
-    Algorithm Overview
+    Algorithm:
         1. Normalize the weights as follows so that w_{i,l} is a probability
             distribution
         2. For each feature j, train a classifier h_j which is restricted to
@@ -41,8 +33,6 @@ def AdaBoost(images, groundtruth_labels, num_pos, num_neg, feature_size=0):
     Args:
         images (np.ndarray): Integral training images include positive images
             and negative images.
-        groundtruth_labels (np.ndarray): training images labels, including
-            only 0 for non-faces and 1 for faces.
         num_pos (int): number of positive image samples
         num_neg (int): number of negative image samples
         feature_size (int): size of features
@@ -77,11 +67,12 @@ def AdaBoost(images, groundtruth_labels, num_pos, num_neg, feature_size=0):
     # Create features for all sizes and locations
     features = feature_generate(img_height, img_width, feature_height, feature_width)
     num_features = len(features)
-    print("\n[*] Generated " + str(num_features) + " features!")
+    print("[*] Generated " + str(num_features) + " features!")
 
     feature_idx = list(range(num_features))
 
     votes = np.zeros((num_images, num_features))
+
     pool = Pool(processes=None)
     for idx in tqdm(range(num_images)):
         votes[idx, :] = np.array(list(pool.map(partial(get_delta, image=images[idx]), features))).T
@@ -91,12 +82,13 @@ def AdaBoost(images, groundtruth_labels, num_pos, num_neg, feature_size=0):
 
     classifiers = []
 
-    print("[*] Selecting classifiers...\n")
+    print("[*] Selecting " + str(num_features) + " classifiers...")
     for i in tqdm(range(num_features)):
 
+        # Re-intialize prediction in every iteration
         pred = np.zeros(len(feature_idx))
 
-        # Normalize weight
+        # Normalize weight in each iteration
         weights *= 1. / np.sum(weights)
 
         for j in range(len(feature_idx)):
@@ -105,7 +97,7 @@ def AdaBoost(images, groundtruth_labels, num_pos, num_neg, feature_size=0):
             pred[j] = error
 
     # ----------------------------------------------------------------------- #
-        # Select best feature
+        # Select best weak classifer
         min_error_idx = np.argmin(pred)
         best_error = pred[min_error_idx]
         best_feature_idx = feature_idx[min_error_idx]
@@ -121,37 +113,43 @@ def AdaBoost(images, groundtruth_labels, num_pos, num_neg, feature_size=0):
         # update image weights
         weights = np.array(list(pool.map(lambda img_idx: weights[img_idx] * np.sqrt((1 - best_error) / best_error) if labels[img_idx] != votes[img_idx, best_feature_idx] else weights[img_idx] * np.sqrt(best_error / (1 - best_error)), range(num_images))))
 
-        # Remove selected feature
+        # Remove selected classifier
         feature_idx.remove(best_feature_idx)
 
     return classifiers
 
 
-@jit
 def feature_generate(img_height, img_width, feature_height, feature_width):
-    """Features generation.
+    """Generate features.
 
     Generate features for all 5 type, all feature size, all training images
 
     Args:
-
+        img_height (int): height of integral image
+        img_width (int): width of integral image
+        feature_height (int): height of feature window (upper-bound)
+        feature_width (int): width of feature window (upper-bound)
 
     Returns:
+        features (list): list of features generated
 
     """
     features = []
     print("[*] Generating features...")
     for feature in FEATURE_TYPE:
         # default width
-        width = FEATURE_TYPE[feature][0]
+        width = FEATURE_TYPE[feature][1]
 
+        # Start with width for all features or with 8 (any number)
         for filter_width in tqdm(range(8, feature_width, width)):
             # default height
-            height = FEATURE_TYPE[feature][1]
+            height = FEATURE_TYPE[feature][0]
 
+            # Start with height for all features or with 8 (any number)
             for filter_height in tqdm(range(8, feature_height, height)):
                 for i in range(img_width - filter_width):
                     for j in range(img_height - filter_height):
+
                         # negative examples
                         features.append(HaarFeature(feature, (i, j),
                                                     filter_width,
@@ -165,7 +163,6 @@ def feature_generate(img_height, img_width, feature_height, feature_width):
     return features
 
 
-@jit
 def get_delta(feature, image):
     """Get delta from those features."""
     return feature._get_delta(image)

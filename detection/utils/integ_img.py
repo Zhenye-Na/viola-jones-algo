@@ -50,9 +50,6 @@ def integral_image2(image):
         S (mp.ndarray): Integral image for given image
 
     """
-    # an index of -1 refers to the last row/column
-    # since row_sum is calculated starting from (0,0),
-    # rowSum(x, -1) == 0 holds for all x
     row_sum = np.zeros(image.shape)
 
     # we need an additional column and row

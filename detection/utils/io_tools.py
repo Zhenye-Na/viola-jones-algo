@@ -1,6 +1,8 @@
-"""Image Preprocess for Viola Jones Face Detection.
+"""Input and output helpers to load in data.
 
-Input and output helpers to load in data.
+1. read in images
+2. read in labels
+
 """
 
 import numpy as np
@@ -12,8 +14,8 @@ def read_dataset(data_txt_file, image_data_path):
     """Read data into a Python dictionary.
 
     Args:
-        data_txt_file(str): path to the data txt file.
-        image_data_path(str): path to the image directory.
+        data_txt_file (str): path to the data txt file.
+        image_data_path (str): path to the image directory.
 
     Returns:
         data(dict): A Python dictionary with keys 'image' and 'label'.

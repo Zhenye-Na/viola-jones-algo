@@ -1,10 +1,14 @@
-"""Generate image labels."""
+"""Generate image labels.
+
+You will never ever use this file!
+
+"""
 
 import os
 from numpy import genfromtxt
 import numpy as np
 
-image_data_path = '/Users/macbookpro/Downloads/nolabels'
+image_data_path = '/path'
 
 list_imname = []
 
@@ -22,7 +26,7 @@ with open("output.txt", "w") as f:
 # | awk 'BEGIN{ a=13234 }{ printf "mv \"%s\" %d.jpg\n", $0, a++ }' \
 # | bash
 
-txtdir = '/Users/macbookpro/Desktop/total.csv'
+txtdir = '/path/total.csv'
 
 arr = genfromtxt(txtdir, delimiter=',')
 

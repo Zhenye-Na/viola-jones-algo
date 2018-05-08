@@ -40,16 +40,6 @@ def rescale_data(image, filename, feature_type):
         io.imsave(dstdir + str(filename[idx]) + ".jpg", rescaled_img)
         idx += 1
 
-    # new_data = process_data(data, feature_type)
-
-    # idx = 0
-    # for img in new_data['image']:
-    #     # Resize all the images to same size
-    #     print(img.shape)
-    #     rescaled_img = resize(img, (64, 64), mode='reflect')
-    #     io.imsave(dstdir + str(filename[idx]) + ".jpg", rescaled_img)
-    #     idx += 1
-
 
 def preprocess_data(img_data_dir, img_output_dir, preprocess_method='default'):
     """Preprocesse images.
@@ -93,7 +83,7 @@ def preprocess_data(img_data_dir, img_output_dir, preprocess_method='default'):
 
             # Check the original mode (channel for each image).
             if img.mode == 'RGBA':
-                # required for img.split()
+
                 img.load()
 
                 # Creates a new image using `L` mode -> gray-scale.
@@ -136,7 +126,7 @@ def preprocess_data(img_data_dir, img_output_dir, preprocess_method='default'):
         for imname in os.listdir(inpdir):
             img = Image.open(os.path.join(inpdir, imname))
             if img.mode == 'RGBA':
-                # required for img.split()
+
                 img.load()
 
                 # Creates a new image using `HSV` mode.
@@ -198,7 +188,7 @@ def process_data(data, process_method='default'):
     elif process_method == 'default':
         # Convert images to range [0,1]
         data['image'] = [image / 255 for image in data['image']]
-        # N = len(scaled_image)
+        N = len(scaled_image)
 
         # Convert from rgb to gray then back to rgb
         grayscale = color.rgb2gray(scaled_image)
